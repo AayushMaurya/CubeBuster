@@ -2,7 +2,7 @@ const http = require("http");
 const app = require("express")();
 const port = process.env.PORT || 8000
 app.get("/",(req, res)=> res.sendFile(__dirname+"/client/index.html"));
-app.listen(8000, ()=>console.log("listening to port 9091"));
+app.listen(8000, ()=>console.log("listening to port 8000"));
 const websocketServer = require("websocket").server
 
 const httpServer = http.createServer();
