@@ -3,10 +3,10 @@ const app = require("express")();
 const websocketServer = require("websocket").server
 const port = process.env.PORT || 9090
 app.get("/",(req, res)=> res.sendFile(__dirname+"/client/index.html"));
-app.listen(8000, ()=>console.log("listening to port", 8000));
+app.listen(port, ()=>console.log("listening to port", port));
 
 const httpServer = http.createServer();
-httpServer.listen(port, () => {
+httpServer.listen(9090, () => {
     console.log("listening to port 9090");
 });
 
