@@ -15,7 +15,7 @@
     </h1>
     <button id="btnCreate">New Game</button>
     <button id="btnJoin">Join game</button>
-    <input type="text" id = "txtGameId">
+    <input type="text" id="txtGameId">
     <div id="divPlayers"></div>
     <div id="divBoard"></div>
     <script>
@@ -28,9 +28,10 @@
         let clientId = null;
         let gameId = null;
         let playerColor = null;
-        
+
         // getting connected with server through socket
-        let ws = new WebSocket("ws://app-cube-buster.herokuapp.com/");
+        var HOST = location.origin.replace(/^http/, 'ws')
+        let ws = new WebSocket(HOST);
 
         // create a new game
         btnCreate.addEventListener("click", e => {
@@ -45,15 +46,15 @@
 
         // join a game
         btnJoin.addEventListener("click", e => {
-            if(gameId == null)
+            if (gameId == null)
                 gameId = txtGameId.value;
-           const payLoad = {
-               "method": "join",
-               "clientId": clientId,
-               "gameId": gameId
-           }
+            const payLoad = {
+                "method": "join",
+                "clientId": clientId,
+                "gameId": gameId
+            }
 
-           ws.send(JSON.stringify(payLoad));
+            ws.send(JSON.stringify(payLoad));
         });
 
         ws.onmessage = message => {
@@ -61,24 +62,21 @@
             console.log(response);
 
             // first time client has sent request for connection
-            if(response.method == "connect")
-            {
+            if (response.method == "connect") {
                 clientId = response.clientId;
                 console.log("Successfully connected with clientId = ", clientId);
             }
 
-            if(response.method == "create")
-            {
+            if (response.method == "create") {
                 gameId = response.game.id;
                 txtGameId.value = gameId;
                 console.log("game successfully created with Id = ", response.game.id);
             }
 
-            if(response.method == "join")
-            {
+            if (response.method == "join") {
                 // remove all the previous children first
-                while(divPlayers.firstChild)
-                        divPlayers.removeChild(divPlayers.firstChild);
+                while (divPlayers.firstChild)
+                    divPlayers.removeChild(divPlayers.firstChild);
 
                 const game = response.game;
                 game.clients.forEach(c => {
@@ -93,23 +91,22 @@
                     // add the child
                     divPlayers.appendChild(d);
 
-                    if(c.clientId == clientId)
+                    if (c.clientId == clientId)
                         playerColor = c.color;
                 });
 
-                while(divBoard.firstChild)
+                while (divBoard.firstChild)
                     divBoard.removeChild(divBoard.firstChild);
 
-                for(let i=0 ; i<game.balls ; i++)
-                {
+                for (let i = 0; i < game.balls; i++) {
                     const b = document.createElement("button");
-                    b.id = "ball"+i;
+                    b.id = "ball" + i;
                     b.tag = i;
-                    b.textContent = i+1;
+                    b.textContent = i + 1;
                     b.style.width = "150px";
                     b.style.height = "150px";
                     b.addEventListener("click", e => {
-                        b.style.background=playerColor;
+                        b.style.background = playerColor;
 
                         const payLoad = {
                             "method": "play",
@@ -125,17 +122,16 @@
                 }
             }
 
-            if(response.method == "update")
-            {
-                for (const b of Object.keys(response.game.state))
-                {
+            if (response.method == "update") {
+                for (const b of Object.keys(response.game.state)) {
                     const color = response.game.state[b];
                     const ballObject = document.getElementById("ball" + b);
                     ballObject.style.backgroundColor = color;
                 }
             }
-            
+
         }
     </script>
 </body>
+
 </html>
