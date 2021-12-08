@@ -35,7 +35,9 @@
         //     console.log(HOST);
         // }, 4000);
 
-        // let ws = new WebSocket("ws://app-cube-buster.herokuapp.com");
+        setTimeout(() => {
+            let ws = new WebSocket("ws://app-cube-buster.herokuapp.com");
+        }, 4000);
 
         // create a new game
         btnCreate.addEventListener("click", e => {
