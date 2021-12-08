@@ -1,7 +1,7 @@
 const http = require("http");
 const app = require("express")();
 const websocketServer = require("websocket").server
-const port = process.env.PORT || 9090
+const port = process.env.PORT || 9091
 app.get("/",(req, res)=> res.sendFile(__dirname+"/client/index.html"));
 app.listen(port, ()=>console.log("listening to port", port));
 
