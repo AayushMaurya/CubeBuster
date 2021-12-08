@@ -36,10 +36,10 @@
         // let ws = new WebSocket(HOST);
         // let ws = new WebSocket("ws://app-cube-buster.herokuapp.com:9090/");
 
-        setInterval(() => {
+        setTimeout(() => {
             var HOST = location.origin.replace(/^http/, 'ws')
             var ws = new WebSocket(HOST);
-        }, 4);
+        }, 4000);
 
         // create a new game
         btnCreate.addEventListener("click", e => {
