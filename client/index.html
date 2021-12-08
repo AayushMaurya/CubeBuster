@@ -37,7 +37,7 @@
         // let ws = new WebSocket("ws://app-cube-buster.herokuapp.com:9090/");
 
         setTimeout(() => {
-            var HOST = location.origin.replace(/^http/, 'ws')
+            var HOST = location.origin.replace(/^http/, 'wss')
             var ws = new WebSocket(HOST);
         }, 4000);
 
