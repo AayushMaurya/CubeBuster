@@ -1,43 +1,31 @@
 var app = require('express')();
 var http = require('http').Server(app);
-const port = process.env || 9090
+const port = process.env.PORT || 3000
 
 var io = require('socket.io')(http);
 
-// const http = require("http");
-// const app = require("express")();
-// const websocketServer = require("websocket").server
-// const port = process.env.PORT || 9091
-app.get("/",(req, res)=> res.sendFile(__dirname+"/client/index.html"));
-// app.listen(port, ()=>console.log("listening to port", port));
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/index.html');
+});
 
-// const httpServer = http.createServer();
-// httpServer.listen(9090, () => {
-//     console.log("listening to port 9090");
-// });
-
-// this will hold record of all the clients
 const clients = {};
 const games = {};
 
-// const wsServer = new websocketServer({
-//     "httpServer": httpServer
-// });
+io.on('connection', function (connection) {
+    console.log('A user connected');
 
-io.on("connection", (connection) => {
-    console.log("A user is connected");
-    // connect
-    // const connection = request.accept(null, request.origin);
-    // connection.on("open", () => console.log("connection opened"));
-    connection.on("disconnect", () => console.log("A user disconnected"));
-    connection.on("message", message => {
-        const result = JSON.parse(message.utf8Data);
+    //Whenever someone disconnects this piece of code executed
+    connection.on('disconnect', function () {
+        console.log('A user disconnected');
+    });
+
+    connection.on("message", (message) => {
+        const result = JSON.parse(message);
         // message will contain the message from the client
         console.log(result);
 
         // if user want to create a new game
-        if(result.method == "create")
-        {
+        if (result.method == "create") {
             const clientId = result.clientId;
             const gameId = guid();
             games[gameId] = {
@@ -53,24 +41,22 @@ io.on("connection", (connection) => {
             }
 
             const con = clients[clientId].connection;
-            con.send(JSON.stringify(payLoad));
+            con.emit("message", payLoad);
 
             console.log("client ", clientId, "has created game ", gameId);
         }
 
         // joining a game
-        if(result.method == "join")
-        {
+        if (result.method == "join") {
             const clientId = result.clientId;
             const gameId = result.gameId;
             const game = games[gameId];
 
-            if(game.clients.length >= 3)
-            {
+            if (game.clients.length >= 3) {
                 return;
             }
 
-            const color = {"0": "Red", "1": "Green", "2": "Blue"}[game.clients.length];
+            const color = { "0": "Red", "1": "Green", "2": "Blue" }[game.clients.length];
 
             game.clients.push({
                 "clientId": clientId,
@@ -80,7 +66,7 @@ io.on("connection", (connection) => {
             console.log("client ", clientId, "has requested to join game ", gameId, "color assigned = ", color);
 
             // start playing
-            if(game.clients.length == 3)
+            if (game.clients.length == 3)
                 updateGameState();
 
             const payLoad = {
@@ -90,13 +76,12 @@ io.on("connection", (connection) => {
 
             // tell all the clients about the newly added player
             game.clients.forEach(c => {
-                clients[c.clientId].connection.send(JSON.stringify(payLoad));
+                clients[c.clientId].connection.emit("message", payLoad);
             });
         }
 
         // user plays
-        if(result.method == "play")
-        {
+        if (result.method == "play") {
             const gameId = result.gameId;
             const ballId = result.ballId;
             const color = result.color;
@@ -104,7 +89,7 @@ io.on("connection", (connection) => {
             const state = games[gameId].state;
             // if(!state)
             //     state = {};
-            
+
             state[ballId] = color;
             games[gameId].state = state;
         }
@@ -120,13 +105,13 @@ io.on("connection", (connection) => {
         "clientId": clientId
     }
     // send back the connect message
-    connection.send(JSON.stringify(payLoad));
+    connection.emit("message", payLoad);
 
 });
 
-http.listen(port, function(){
-    console.log("listening to port", port);
-})
+http.listen(port, function () {
+    console.log('listening on *:3000');
+});
 
 // this function is to create a unique ID 
 function S4() {
@@ -146,7 +131,7 @@ function updateGameState(){
         }
 
         games[g].clients.forEach(c => {
-            clients[c.clientId].connection.send(JSON.stringify(payLoad));
+            clients[c.clientId].connection.emit("message", payLoad);
         });
     }
 

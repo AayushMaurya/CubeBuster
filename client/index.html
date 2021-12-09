@@ -10,6 +10,7 @@
 </head>
 
 <script src="/socket.io/socket.io.js"></script>
+
 <body>
     <h1>
         Cube buster
@@ -19,128 +20,129 @@
     <input type="text" id="txtGameId">
     <div id="divPlayers"></div>
     <div id="divBoard"></div>
-    <script>
-        const btnCreate = document.getElementById("btnCreate");
-        const btnJoin = document.getElementById("btnJoin");
-        const txtGameId = document.getElementById("txtGameId");
-        const divPlayers = document.getElementById("divPlayers");
-        const divBoard = document.getElementById("divBoard");
 
-        let clientId = null;
-        let gameId = null;
-        let playerColor = null;
-
-        // setTimeout(() => {
-        //     var HOST = location.origin.replace(/^http/, 'ws')
-        //     var ws = new WebSocket(HOST);
-        //     console.log(HOST);
-        //     }, 4000);
-
-            // setTimeout(() => {
-            //     let ws = new WebSocket("wss://app-cube-buster.herokuapp.com");
-            // }, 4000);
-
-            // let ws = new WebSocket("ws://localhost:9090");
-                let ws = io();
-            // create a new game
-            btnCreate.addEventListener("click", e => {
-
-                const payload = {
-                    "method": "create",
-                    "clientId": clientId
-                }
-
-                ws.send(JSON.stringify(payload));
-            });
-
-            // join a game
-            btnJoin.addEventListener("click", e => {
-                if (gameId == null)
-                    gameId = txtGameId.value;
-                const payLoad = {
-                    "method": "join",
-                    "clientId": clientId,
-                    "gameId": gameId
-                }
-
-                ws.send(JSON.stringify(payLoad));
-            });
-
-            ws.onmessage = message => {
-                const response = JSON.parse(message.data);
-                console.log(response);
-
-                // first time client has sent request for connection
-                if (response.method == "connect") {
-                    clientId = response.clientId;
-                    console.log("Successfully connected with clientId = ", clientId);
-                }
-
-                if (response.method == "create") {
-                    gameId = response.game.id;
-                    txtGameId.value = gameId;
-                    console.log("game successfully created with Id = ", response.game.id);
-                }
-
-                if (response.method == "join") {
-                    // remove all the previous children first
-                    while (divPlayers.firstChild)
-                        divPlayers.removeChild(divPlayers.firstChild);
-
-                    const game = response.game;
-                    game.clients.forEach(c => {
-
-                        // create a element to display the name of the players joined
-                        const d = document.createElement("div");
-
-                        d.style.width = "200px";
-                        d.style.background = c.color;
-                        d.textContent = c.clientId;
-
-                        // add the child
-                        divPlayers.appendChild(d);
-
-                        if (c.clientId == clientId)
-                            playerColor = c.color;
-                    });
-
-                    while (divBoard.firstChild)
-                        divBoard.removeChild(divBoard.firstChild);
-
-                    for (let i = 0; i < game.balls; i++) {
-                        const b = document.createElement("button");
-                        b.id = "ball" + i;
-                        b.tag = i;
-                        b.textContent = i + 1;
-                        b.style.width = "150px";
-                        b.style.height = "150px";
-                        b.addEventListener("click", e => {
-                            b.style.background = playerColor;
-
-                            const payLoad = {
-                                "method": "play",
-                                "clientId": clientId,
-                                "gameId": gameId,
-                                "ballId": b.tag,
-                                "color": playerColor
-                            }
-
-                            ws.send(JSON.stringify(payLoad));
-                        });
-                        divBoard.appendChild(b);
-                    }
-                }
-
-                if (response.method == "update") {
-                    for (const b of Object.keys(response.game.state)) {
-                        const color = response.game.state[b];
-                        const ballObject = document.getElementById("ball" + b);
-                        ballObject.style.backgroundColor = color;
-                    }
-                }
-
-            }
-    </script>
 </body>
+<script>
+    const btnCreate = document.getElementById("btnCreate");
+    const btnJoin = document.getElementById("btnJoin");
+    const txtGameId = document.getElementById("txtGameId");
+    const divPlayers = document.getElementById("divPlayers");
+    const divBoard = document.getElementById("divBoard");
+
+    let clientId = null;
+    let gameId = null;
+    let playerColor = null;
+
+    // setTimeout(() => {
+    //     var HOST = location.origin.replace(/^http/, 'ws')
+    //     var ws = new WebSocket(HOST);
+    //     console.log(HOST);
+    //     }, 4000);
+
+    // setTimeout(() => {
+    //     let ws = new WebSocket("wss://app-cube-buster.herokuapp.com");
+    // }, 4000);
+
+    // let ws = new WebSocket("ws://localhost:9090");
+    let ws = io();
+    // create a new game
+    btnCreate.addEventListener("click", e => {
+
+        const payload = {
+            "method": "create",
+            "clientId": clientId
+        }
+
+        ws.send(JSON.stringify(payload));
+    });
+
+    // join a game
+    btnJoin.addEventListener("click", e => {
+        if (gameId == null)
+            gameId = txtGameId.value;
+        const payLoad = {
+            "method": "join",
+            "clientId": clientId,
+            "gameId": gameId
+        }
+
+        ws.send(JSON.stringify(payLoad));
+    });
+
+    ws.on("message", response => {
+        // const response = JSON.parse(message);
+        console.log(response);
+
+        // first time client has sent request for connection
+        if (response.method == "connect") {
+            clientId = response.clientId;
+            console.log("Successfully connected with clientId = ", clientId);
+        }
+
+        if (response.method == "create") {
+            gameId = response.game.id;
+            txtGameId.value = gameId;
+            console.log("game successfully created with Id = ", response.game.id);
+        }
+
+        if (response.method == "join") {
+            // remove all the previous children first
+            while (divPlayers.firstChild)
+                divPlayers.removeChild(divPlayers.firstChild);
+
+            const game = response.game;
+            game.clients.forEach(c => {
+
+                // create a element to display the name of the players joined
+                const d = document.createElement("div");
+
+                d.style.width = "200px";
+                d.style.background = c.color;
+                d.textContent = c.clientId;
+
+                // add the child
+                divPlayers.appendChild(d);
+
+                if (c.clientId == clientId)
+                    playerColor = c.color;
+            });
+
+            while (divBoard.firstChild)
+                divBoard.removeChild(divBoard.firstChild);
+
+            for (let i = 0; i < game.balls; i++) {
+                const b = document.createElement("button");
+                b.id = "ball" + i;
+                b.tag = i;
+                b.textContent = i + 1;
+                b.style.width = "150px";
+                b.style.height = "150px";
+                b.addEventListener("click", e => {
+                    b.style.background = playerColor;
+
+                    const payLoad = {
+                        "method": "play",
+                        "clientId": clientId,
+                        "gameId": gameId,
+                        "ballId": b.tag,
+                        "color": playerColor
+                    }
+
+                    ws.send(JSON.stringify(payLoad));
+                });
+                divBoard.appendChild(b);
+            }
+        }
+
+        if (response.method == "update") {
+            for (const b of Object.keys(response.game.state)) {
+                const color = response.game.state[b];
+                const ballObject = document.getElementById("ball" + b);
+                ballObject.style.backgroundColor = color;
+            }
+        }
+
+    });
+</script>
 
 </html>
