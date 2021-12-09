@@ -30,18 +30,18 @@
         let gameId = null;
         let playerColor = null;
 
-        setTimeout(() => {
-            var HOST = location.origin.replace(/^http/, 'ws')
-            var ws = new WebSocket(HOST);
-            console.log(HOST);
-            }, 4000);
+        // setTimeout(() => {
+        //     var HOST = location.origin.replace(/^http/, 'ws')
+        //     var ws = new WebSocket(HOST);
+        //     console.log(HOST);
+        //     }, 4000);
 
             // setTimeout(() => {
             //     let ws = new WebSocket("wss://app-cube-buster.herokuapp.com");
             // }, 4000);
 
             // let ws = new WebSocket("ws://localhost:9090");
-
+                let ws = io();
             // create a new game
             btnCreate.addEventListener("click", e => {
 

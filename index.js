@@ -1,5 +1,3 @@
-const { connection } = require('websocket');
-
 var app = require('express')();
 var http = require('http').Server(app);
 const port = process.env || 9090
