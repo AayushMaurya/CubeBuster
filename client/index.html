@@ -9,6 +9,7 @@
     <!-- <link rel="stylesheet" href="style.css"> -->
 </head>
 
+<script src="/socket.io/socket.io.js"></script>
 <body>
     <h1>
         Cube buster
@@ -29,114 +30,116 @@
         let gameId = null;
         let playerColor = null;
 
-        // setTimeout(() => {
-        //     var HOST = location.origin.replace(/^http/, 'ws')
-        //     var ws = new WebSocket(HOST);
-        //     console.log(HOST);
-        // }, 4000);
-
         setTimeout(() => {
-            let ws = new WebSocket("wss://app-cube-buster.herokuapp.com");
-        }, 4000);
+            var HOST = location.origin.replace(/^http/, 'ws')
+            var ws = new WebSocket(HOST);
+            console.log(HOST);
+            }, 4000);
 
-        // create a new game
-        btnCreate.addEventListener("click", e => {
+            // setTimeout(() => {
+            //     let ws = new WebSocket("wss://app-cube-buster.herokuapp.com");
+            // }, 4000);
 
-            const payload = {
-                "method": "create",
-                "clientId": clientId
-            }
+            // let ws = new WebSocket("ws://localhost:9090");
 
-            ws.send(JSON.stringify(payload));
-        });
+            // create a new game
+            btnCreate.addEventListener("click", e => {
 
-        // join a game
-        btnJoin.addEventListener("click", e => {
-            if (gameId == null)
-                gameId = txtGameId.value;
-            const payLoad = {
-                "method": "join",
-                "clientId": clientId,
-                "gameId": gameId
-            }
+                const payload = {
+                    "method": "create",
+                    "clientId": clientId
+                }
 
-            ws.send(JSON.stringify(payLoad));
-        });
+                ws.send(JSON.stringify(payload));
+            });
 
-        ws.onmessage = message => {
-            const response = JSON.parse(message.data);
-            console.log(response);
+            // join a game
+            btnJoin.addEventListener("click", e => {
+                if (gameId == null)
+                    gameId = txtGameId.value;
+                const payLoad = {
+                    "method": "join",
+                    "clientId": clientId,
+                    "gameId": gameId
+                }
 
-            // first time client has sent request for connection
-            if (response.method == "connect") {
-                clientId = response.clientId;
-                console.log("Successfully connected with clientId = ", clientId);
-            }
+                ws.send(JSON.stringify(payLoad));
+            });
 
-            if (response.method == "create") {
-                gameId = response.game.id;
-                txtGameId.value = gameId;
-                console.log("game successfully created with Id = ", response.game.id);
-            }
+            ws.onmessage = message => {
+                const response = JSON.parse(message.data);
+                console.log(response);
 
-            if (response.method == "join") {
-                // remove all the previous children first
-                while (divPlayers.firstChild)
-                    divPlayers.removeChild(divPlayers.firstChild);
+                // first time client has sent request for connection
+                if (response.method == "connect") {
+                    clientId = response.clientId;
+                    console.log("Successfully connected with clientId = ", clientId);
+                }
 
-                const game = response.game;
-                game.clients.forEach(c => {
+                if (response.method == "create") {
+                    gameId = response.game.id;
+                    txtGameId.value = gameId;
+                    console.log("game successfully created with Id = ", response.game.id);
+                }
 
-                    // create a element to display the name of the players joined
-                    const d = document.createElement("div");
+                if (response.method == "join") {
+                    // remove all the previous children first
+                    while (divPlayers.firstChild)
+                        divPlayers.removeChild(divPlayers.firstChild);
 
-                    d.style.width = "200px";
-                    d.style.background = c.color;
-                    d.textContent = c.clientId;
+                    const game = response.game;
+                    game.clients.forEach(c => {
 
-                    // add the child
-                    divPlayers.appendChild(d);
+                        // create a element to display the name of the players joined
+                        const d = document.createElement("div");
 
-                    if (c.clientId == clientId)
-                        playerColor = c.color;
-                });
+                        d.style.width = "200px";
+                        d.style.background = c.color;
+                        d.textContent = c.clientId;
 
-                while (divBoard.firstChild)
-                    divBoard.removeChild(divBoard.firstChild);
+                        // add the child
+                        divPlayers.appendChild(d);
 
-                for (let i = 0; i < game.balls; i++) {
-                    const b = document.createElement("button");
-                    b.id = "ball" + i;
-                    b.tag = i;
-                    b.textContent = i + 1;
-                    b.style.width = "150px";
-                    b.style.height = "150px";
-                    b.addEventListener("click", e => {
-                        b.style.background = playerColor;
-
-                        const payLoad = {
-                            "method": "play",
-                            "clientId": clientId,
-                            "gameId": gameId,
-                            "ballId": b.tag,
-                            "color": playerColor
-                        }
-
-                        ws.send(JSON.stringify(payLoad));
+                        if (c.clientId == clientId)
+                            playerColor = c.color;
                     });
-                    divBoard.appendChild(b);
-                }
-            }
 
-            if (response.method == "update") {
-                for (const b of Object.keys(response.game.state)) {
-                    const color = response.game.state[b];
-                    const ballObject = document.getElementById("ball" + b);
-                    ballObject.style.backgroundColor = color;
-                }
-            }
+                    while (divBoard.firstChild)
+                        divBoard.removeChild(divBoard.firstChild);
 
-        }
+                    for (let i = 0; i < game.balls; i++) {
+                        const b = document.createElement("button");
+                        b.id = "ball" + i;
+                        b.tag = i;
+                        b.textContent = i + 1;
+                        b.style.width = "150px";
+                        b.style.height = "150px";
+                        b.addEventListener("click", e => {
+                            b.style.background = playerColor;
+
+                            const payLoad = {
+                                "method": "play",
+                                "clientId": clientId,
+                                "gameId": gameId,
+                                "ballId": b.tag,
+                                "color": playerColor
+                            }
+
+                            ws.send(JSON.stringify(payLoad));
+                        });
+                        divBoard.appendChild(b);
+                    }
+                }
+
+                if (response.method == "update") {
+                    for (const b of Object.keys(response.game.state)) {
+                        const color = response.game.state[b];
+                        const ballObject = document.getElementById("ball" + b);
+                        ballObject.style.backgroundColor = color;
+                    }
+                }
+
+            }
     </script>
 </body>
 

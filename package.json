@@ -24,7 +24,9 @@
     "http": "^0.0.1-security",
     "nodemon": "^2.0.15",
     "phoenix": "^1.6.2",
+    "socket.io": "^4.4.0",
     "utf-8-validate": "^5.0.7",
-    "websocket": "^1.0.34"
+    "websocket": "^1.0.34",
+    "ws": "^8.3.0"
   }
 }

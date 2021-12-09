@@ -1,28 +1,37 @@
-const http = require("http");
-const app = require("express")();
-const websocketServer = require("websocket").server
-const port = process.env.PORT || 9091
-app.get("/",(req, res)=> res.sendFile(__dirname+"/client/index.html"));
-app.listen(port, ()=>console.log("listening to port", port));
+const { connection } = require('websocket');
 
-const httpServer = http.createServer();
-httpServer.listen(9090, () => {
-    console.log("listening to port 9090");
-});
+var app = require('express')();
+var http = require('http').Server(app);
+const port = process.env || 9090
+
+var io = require('socket.io')(http);
+
+// const http = require("http");
+// const app = require("express")();
+// const websocketServer = require("websocket").server
+// const port = process.env.PORT || 9091
+app.get("/",(req, res)=> res.sendFile(__dirname+"/client/index.html"));
+// app.listen(port, ()=>console.log("listening to port", port));
+
+// const httpServer = http.createServer();
+// httpServer.listen(9090, () => {
+//     console.log("listening to port 9090");
+// });
 
 // this will hold record of all the clients
 const clients = {};
 const games = {};
 
-const wsServer = new websocketServer({
-    "httpServer": httpServer
-});
+// const wsServer = new websocketServer({
+//     "httpServer": httpServer
+// });
 
-wsServer.on("request", request => {
+io.on("connection", (connection) => {
+    console.log("A user is connected");
     // connect
-    const connection = request.accept(null, request.origin);
-    connection.on("open", () => console.log("connection opened"));
-    connection.on("closed", () => console.log("connection is closed"));
+    // const connection = request.accept(null, request.origin);
+    // connection.on("open", () => console.log("connection opened"));
+    connection.on("disconnect", () => console.log("A user disconnected"));
     connection.on("message", message => {
         const result = JSON.parse(message.utf8Data);
         // message will contain the message from the client
@@ -116,6 +125,10 @@ wsServer.on("request", request => {
     connection.send(JSON.stringify(payLoad));
 
 });
+
+http.listen(port, function(){
+    console.log("listening to port", port);
+})
 
 // this function is to create a unique ID 
 function S4() {
